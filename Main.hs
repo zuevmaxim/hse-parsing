@@ -10,6 +10,9 @@ runParser input = do
 
 main :: IO ()
 main = do
-  runParser " 1 - 2 - 3 "
-  runParser " (((9)))"
-  runParser " 1 * 2 - 3 / 4 + 5"
+
+  runParser " 1 - 2 - 3 + 4"
+  runParser " maxval = 13 + 12"
+  runParser " val = 3^5 + x^y"
+  runParser " -3 ^ 5 + 2^cc"
+

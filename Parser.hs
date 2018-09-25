@@ -5,9 +5,11 @@ import Prelude hiding (lookup)
 
 data AST = ASum Operator AST AST
          | AProd Operator AST AST
-         | AAssign Char AST
+         | AUnMinus Operator AST
+         | APower Operator AST AST
+         | AAssign String AST
          | ANum Integer
-         | AIdent Char
+         | AIdent String
 
 parse :: String -> Maybe AST
 parse input =
@@ -35,12 +37,22 @@ expression ts =
 
 term :: [Token] -> (AST, [Token])
 term ts =
-  let (factNode, ts') = factor ts in
+  let (powNode, ts') = power ts in
   case lookup ts' of
     TOp op | op == Mult || op == Div ->
       let (termNode, ts'') = term $ accept ts' in
-      (AProd op factNode termNode, ts'')
+      (AProd op powNode termNode, ts'')
+    _ -> (powNode, ts')
+
+power :: [Token] -> (AST, [Token])
+power ts =
+  let (factNode, ts') = factor ts in
+  case lookup ts' of
+    TOp op | op == Power ->
+      let (powNode, ts'') = power $ accept ts' in
+      (APower op factNode powNode, ts'')
     _ -> (factNode, ts')
+
 
 factor :: [Token] -> (AST, [Token])
 factor ts =
@@ -52,7 +64,10 @@ factor ts =
         _ -> error "Syntax error: mismatched parentheses"
     TIdent v -> (AIdent v, accept ts)
     TDigit d -> (ANum d, accept ts)
-    _ -> error "Syntax error: factor can only be a digit, an identifier or a parenthesised expression"
+    TOp op | op == Minus ->
+      let (a, ts') = factor $ accept ts in
+      (AUnMinus op a, ts')
+    _ -> error "Syntax error: factor can only be a digit, an identifier, unary minus or a parenthesised expression"
 
 lookup :: [Token] -> Token
 lookup = head
@@ -68,11 +83,14 @@ instance Show AST where
         (case t of
                   ASum  op l r -> showOp op : "\n" ++ show' (ident n) l ++ "\n" ++ show' (ident n) r
                   AProd op l r -> showOp op : "\n" ++ show' (ident n) l ++ "\n" ++ show' (ident n) r
-                  AAssign  v e -> v : " =\n" ++ show' (ident n) e
+                  APower op l r -> showOp op : "\n" ++ show' (ident n) l ++ "\n" ++ show' (ident n) r
+                  AUnMinus op l -> showOp op : "\n" ++ show' (ident n) l
+                  AAssign  v e -> v ++ " =\n" ++ show' (ident n) e
                   ANum   i     -> show i
-                  AIdent i     -> show i)
+                  AIdent i     -> i)
       ident = (+1)
       showOp Plus  = '+'
       showOp Minus = '-'
       showOp Mult  = '*'
       showOp Div   = '/'
+      showOp Power = '^'
