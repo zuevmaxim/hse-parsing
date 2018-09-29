@@ -26,8 +26,8 @@ expression ts =
   let (termNode, ts') = term ts in
   case lookup ts' of
     TOp op | op == Plus || op == Minus ->
-      let (exprNode, ts'') = expression $ accept ts' in
-      (ASum op termNode exprNode, ts'')
+      let (restExprNode, ts'') = restExpression termNode ts' in
+      (restExprNode, ts'')
     TAssign ->
       case termNode of
         AIdent v -> let (exprNode, ts'') = expression $ accept ts' in
@@ -35,14 +35,33 @@ expression ts =
         _ -> error "Syntax error: assignment is only possible to identifiers"
     _ -> (termNode, ts')
 
+restExpression :: AST -> [Token] -> (AST, [Token])
+restExpression termNode ts =
+  case lookup ts of
+    TOp op | op == Plus || op == Minus ->
+      let (termNode', ts') = term $ accept ts in
+      let (restExprNode, ts'') = restExpression (ASum op termNode termNode') ts' in
+      (restExprNode, ts'')
+    _ -> (termNode, ts)
+
 term :: [Token] -> (AST, [Token])
 term ts =
   let (powNode, ts') = power ts in
   case lookup ts' of
     TOp op | op == Mult || op == Div ->
-      let (termNode, ts'') = term $ accept ts' in
-      (AProd op powNode termNode, ts'')
+      let (restTermNode, ts'') = restTerm powNode ts' in
+      (restTermNode, ts'')
     _ -> (powNode, ts')
+
+restTerm :: AST -> [Token] -> (AST, [Token])
+restTerm powNode ts =
+  case lookup ts of
+    TOp op | op == Mult || op == Div ->
+      let (powNode', ts') = power $ accept ts in
+      let (restTermNode, ts'') = restTerm (AProd op powNode powNode') ts' in
+      (restTermNode, ts'')
+    _ -> (powNode, ts)
+
 
 power :: [Token] -> (AST, [Token])
 power ts =

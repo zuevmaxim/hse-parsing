@@ -5,9 +5,13 @@ A simple recursive descent parser. Written for the formal languages course in HS
 S -> Expr | \epsilon
 
 Expr -> Ident = Expr
-      | Term ((+ | *) Expr)?
+      | Term restExpr
 
-Term -> Power ((* | /) Term)?
+restExpr -> (+|-) Term restExpr | \epsilon
+
+Term -> Power restTerm
+
+restTerm -> (*|/) Power restTerm | \epsilon
 
 Power -> Factor (^ Power)?
 
