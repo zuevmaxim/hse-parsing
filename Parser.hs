@@ -84,7 +84,7 @@ factor ts =
     TIdent v -> (AIdent v, accept ts)
     TDigit d -> (ANum d, accept ts)
     TOp op | op == Minus ->
-      let (a, ts') = factor $ accept ts in
+      let (a, ts') = power $ accept ts in
       (AUnMinus op a, ts')
     _ -> error "Syntax error: factor can only be a digit, an identifier, unary minus or a parenthesised expression"
 

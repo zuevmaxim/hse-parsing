@@ -18,7 +18,7 @@ Power -> Factor (^ Power)?
 Factor -> Ident 
         | Num 
         | '(' Expr ')'
-        | '-' Factor
+        | '-' Power
 Char -> ('a' | 'b' | ... | 'z')
 
 Ident -> Char (Char | Digit)*

@@ -15,4 +15,6 @@ main = do
   runParser " maxval = 13 + 12"
   runParser " val = 3^5 + x^y"
   runParser " -3 ^ 5 + 2^cc"
+  runParser "-2^2"
+  runParser "(-2)^2"
 
