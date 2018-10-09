@@ -50,20 +50,17 @@ operator c = error ("Lexical error: " ++ c : " is not an operator!")
 isDigit :: Char -> Bool
 isDigit x = x `elem` "0123456789"
 
-fromJust :: Maybe a -> a
-fromJust (Just a) = a
-fromJust Nothing  = error("Wrong value!")
+number' :: [Char] -> (Integer, Integer)
+number' (c : cs) | cs == [] = (digit c, 10)
+                 | otherwise =
+                   let (k, n) = number' cs in
+                   (n * (digit c) + k, n * 10)
+number' [] = error ("Not a number!")
 
-number :: String -> Integer
-number x = fromJust(number' x)
-
-number' :: String -> Maybe Integer
-number' [] = Nothing
-number' (c : cs) =
-  let n = number' cs in
-  case n of
-    Nothing -> Just (digit c)
-    _ -> Just ((digit c) * 10 + fromJust n)
+number :: [Char] -> Integer
+number cs =
+  let (a, _) = number' cs in
+  a
 
 digit :: Char -> Integer
 digit c | c == '0' = 0
