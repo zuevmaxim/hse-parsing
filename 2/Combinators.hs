@@ -9,7 +9,6 @@ type Input = String
 -- Result is polymorphic in the ... result
 data Result r = Success r
               | Error String
-              deriving (Show)
 
 -- The result of parsing is some payload r and the suffix which wasn't parsed
 type Parser r = Input -> Result (r, Input)
@@ -52,6 +51,7 @@ elem :: Parser Char
 elem (c : cs) = Success (c, cs)
 elem [] = Error "Empty string"
 
+-- Chops of two elements of the string
 elem2 :: Parser String
 elem2 (c1 : c2 : cs) = Success (c1 : [c2], cs)
 elem2 _ = Error "Length of the string is too small"
@@ -81,3 +81,10 @@ map f parser inp =
   case parser inp of
     Success (r, inp') -> Success (f r, inp')
     Error err -> Error err
+-- Checks if input is over
+empty :: Parser Char
+empty [] = Success ('!', [])
+empty _  = Error "Not an empty input!"
+
+sep :: Parser Char
+sep = char ';'

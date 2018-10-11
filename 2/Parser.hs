@@ -16,21 +16,23 @@ data AST = ASum T.Operator AST AST
          | AIdent String
          | AConcat T.ListOp AST AST
 
--- TODO: Rewrite this without using Success and Error
-parse :: String -> [Maybe (Result AST)]
-parse input =
-  case input of
-    [] -> [Nothing]
-    _ -> case expression input of
-           Success (tree, ts') ->
-             if null ts'
-             then [Just (Success tree)]
-             else case head ts' of
-                    ';' -> case parse $ tail ts' of
-                             [Nothing] -> [Just (Error ("Input must not finish with ';'"))]
-                             cs -> Just (Success tree) : cs
-                    _   -> [Just (Error ("Syntax error on: " ++ show ts'))] -- Only a prefix of the input is parsed
-           Error err -> [Just (Error err)] -- Legitimate syntax error
+parse :: Parser [AST]
+parse =
+  ( empty |> return [] )
+  <|>
+  ( expression >>= \e ->
+    (
+      ( empty |> return [e] )
+      <|>
+      ( sep |>
+        ( ( empty |> zero "Input must not finish with ';'" )
+          <|>
+          ( parse >>= \es -> return (e : es) )
+        )
+      )
+      <|> ( zero "syntax error" )
+    )
+  )
 
 expression :: Parser AST
 expression =
